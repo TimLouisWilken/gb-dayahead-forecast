@@ -218,7 +218,7 @@ function renderMain(){
   const f=L.forecast,q=L.quantiles;
   const dt=new Date(L.target_date+"T12:00:00Z");
   const mean=f.reduce((a,b)=>a+b,0)/24, hi=Math.max(...f), lo=Math.min(...f);
-  $("h1").innerHTML=`${DOWS[dt.getUTCDay()]}, ${dt.getUTCDate()} ${MONS[dt.getUTCMonth()]} <span class="dim">— averaging ${fmt(mean)} €/MWh.</span>`;
+  $("h1").textContent=`${DOWS[dt.getUTCDay()]}, ${dt.getUTCDate()} ${MONS[dt.getUTCMonth()]}`;
   $("meta").innerHTML=`Published <b>${L.generated_utc.replace("T"," ").replace("Z","")} UTC</b>, before gate closure · ${L.model}`;
   $("charttitle").textContent=`Hourly forecast for ${L.target_date}`;
   $("tiles").innerHTML=[
