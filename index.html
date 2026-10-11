@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GB Day-Ahead Forecast</title>
 <meta name="description" content="Daily GB day-ahead electricity price forecast from an online hybrid ensemble with QRA quantiles. Research project, updated every morning before gate closure.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#efefec; --card:#ffffff; --panel:#e6e6e2;
@@ -38,26 +35,26 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
-  font:15px/1.6 "Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font:15px/1.6 "Helvetica Neue",Helvetica,-apple-system,Arial,sans-serif;
   -webkit-font-smoothing:antialiased}
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px 72px}
 
 /* top bar */
 nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0 0}
-.brand{font:600 14px "Instrument Sans";letter-spacing:.32em;text-transform:uppercase}
+.brand{font:600 14px "Helvetica Neue";letter-spacing:.32em;text-transform:uppercase}
 .brand i{font-style:normal;color:var(--ink3)}
 .navr{display:flex;align-items:center;gap:14px}
-.badge{font:500 11px "Instrument Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.badge{font:500 11px "Helvetica Neue";letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
 .mode{display:flex;gap:2px;background:var(--panel);border-radius:7px;padding:2px}
-.mode button{background:none;border:0;color:var(--ink3);font:600 11px "Instrument Sans";
+.mode button{background:none;border:0;color:var(--ink3);font:600 11px "Helvetica Neue";
   letter-spacing:.08em;padding:5px 11px;cursor:pointer;text-transform:uppercase;border-radius:5px}
 .mode button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 
 /* hero */
 .hero{padding:64px 0 14px;border-bottom:1px solid var(--line);margin-bottom:26px}
-.eyebrow{font:500 12px "Instrument Sans";letter-spacing:.18em;text-transform:uppercase;color:var(--ink2)}
-h1{font-family:"Newsreader";font-optical-sizing:auto;font-weight:500;
-  font-size:clamp(38px,6vw,64px);line-height:1.04;letter-spacing:-.015em;margin:14px 0 10px}
+.eyebrow{font:500 12px "Helvetica Neue";letter-spacing:.18em;text-transform:uppercase;color:var(--ink2)}
+h1{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:500;
+  font-size:clamp(36px,5.6vw,58px);line-height:1.06;letter-spacing:-.03em;margin:14px 0 10px}
 h1 .dim{color:var(--ink3)}
 .meta{color:var(--ink3);font-size:13px;padding-bottom:22px}
 .meta b{color:var(--ink2);font-weight:500}
@@ -66,26 +63,26 @@ h1 .dim{color:var(--ink3)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
   background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0 0 26px}
 .tile{background:var(--card);padding:18px 20px 16px}
-.tile .k{font:500 11px "Instrument Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
-.tile .v{font:600 30px/1.15 "Instrument Sans";letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
-.tile .v small{font:400 12px "Instrument Sans";color:var(--ink3);margin-left:4px;letter-spacing:0}
+.tile .k{font:500 11px "Helvetica Neue";letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.tile .v{font:600 30px/1.15 "Helvetica Neue";letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
+.tile .v small{font:400 12px "Helvetica Neue";color:var(--ink3);margin-left:4px;letter-spacing:0}
 .tile .d{font-size:12.5px;color:var(--ink2);margin-top:3px}
 
 /* cards */
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
   padding:24px 24px 20px;margin-top:26px;box-shadow:var(--shadow)}
 .cardhead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:10px}
-h2{font-family:"Newsreader";font-weight:500;font-size:26px;letter-spacing:-.01em;margin:0;line-height:1.15}
+h2{font-weight:500;font-size:20px;letter-spacing:-.02em;margin:0;line-height:1.2}
 .sub2{color:var(--ink3);font-size:12.5px;margin-top:4px}
 
 /* modo-style underline tabs */
 .tabs{display:flex;gap:22px}
 .tabs button{background:none;border:0;padding:4px 0 7px;cursor:pointer;
-  font:500 13.5px "Instrument Sans";color:var(--ink3);border-bottom:2px solid transparent}
+  font:500 13.5px "Helvetica Neue";color:var(--ink3);border-bottom:2px solid transparent}
 .tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
 
 svg.chart{display:block;width:100%;height:auto}
-.axis{stroke:var(--line)} .axt{fill:var(--ink3);font:500 10.5px "Instrument Sans";letter-spacing:.05em}
+.axis{stroke:var(--line)} .axt{fill:var(--ink3);font:500 10.5px "Helvetica Neue";letter-spacing:.05em}
 .leg{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:14px}
 .leg span{display:inline-flex;align-items:center;gap:8px;flex:none;white-space:nowrap}
 .leg svg{flex:none;width:24px;height:10px}
@@ -99,17 +96,17 @@ svg.chart{display:block;width:100%;height:auto}
 table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:10px;font-variant-numeric:tabular-nums}
 th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
-th{color:var(--ink3);font:500 11px "Instrument Sans";letter-spacing:.12em;text-transform:uppercase}
+th{color:var(--ink3);font:500 11px "Helvetica Neue";letter-spacing:.12em;text-transform:uppercase}
 td:nth-child(2){font-weight:600}
 
 .chips{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .chip{font-size:12.5px;color:var(--ink3)}
-.chip b{display:block;font:600 19px "Instrument Sans";color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.chip b{display:block;font:600 19px "Helvetica Neue";color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 
 footer{color:var(--ink3);font-size:12.5px;margin-top:34px;line-height:1.75;max-width:760px}
 footer a{color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line2)}
 footer a:hover{text-decoration-color:var(--ink)}
-.arrow{font:500 13px "Instrument Sans";color:var(--ink);text-decoration:none;display:inline-flex;gap:6px;align-items:center;margin-top:8px}
+.arrow{font:500 13px "Helvetica Neue";color:var(--ink);text-decoration:none;display:inline-flex;gap:6px;align-items:center;margin-top:8px}
 .arrow:hover{color:var(--acc2)}
 .err{color:#a3512b}
 @media(max-width:560px){ .tile .v{font-size:24px} .card{padding:16px 14px 14px} h2{font-size:22px} }
