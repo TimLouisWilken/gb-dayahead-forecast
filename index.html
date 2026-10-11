@@ -104,6 +104,7 @@ td:nth-child(2){font-weight:600}
   border-radius:7px;font-size:16px;cursor:pointer;line-height:1}
 .daynav button:hover:not(:disabled){color:var(--ink);border-color:var(--ink3)}
 .daynav button:disabled{opacity:.35;cursor:default}
+.srcbadge{font:600 9.5px "Helvetica Neue";letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;margin-left:6px}
 .daynav span{font:600 13.5px "Helvetica Neue";min-width:92px;text-align:center;font-variant-numeric:tabular-nums}
 .chips{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .chip{font-size:12.5px;color:var(--ink3)}
@@ -162,7 +163,7 @@ footer a:hover{text-decoration-color:var(--ink)}
     <div class="cardhead">
       <div>
         <h2>Forecast vs. actual</h2>
-        <div class="sub2">published forecast against the realised auction price · actual prices: Nord Pool N2EX, last 14 days only</div>
+        <div class="sub2">published forecast against the realised auction price · days before the live start are a backtest of the current system · actual prices: Nord Pool N2EX, last 60 days only</div>
       </div>
       <div class="daynav">
         <button id="dprev" aria-label="previous day">‹</button>
@@ -175,6 +176,7 @@ footer a:hover{text-decoration-color:var(--ink)}
       <span><span class="bx" style="background:var(--band1)"></span>90 % interval</span>
       <span><svg><line x1="1" y1="5" x2="23" y2="5" stroke="var(--mline)" stroke-width="1.7" stroke-dasharray="4 3"/></svg>forecast</span>
       <span><svg><line x1="1" y1="5" x2="23" y2="5" stroke="var(--fline)" stroke-width="2.4"/></svg>actual</span>
+      <span><svg><line x1="1" y1="5" x2="23" y2="5" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="2 3"/></svg>median (q50)</span>
       <span class="sub2" id="cmpstat"></span>
     </div>
   </div>
@@ -183,7 +185,7 @@ footer a:hover{text-decoration-color:var(--ink)}
     <div class="cardhead">
       <div>
         <h2>Realised accuracy</h2>
-        <div class="sub2">daily mean absolute error of the published forecasts, EUR/MWh</div>
+        <div class="sub2">daily mean absolute error, EUR/MWh · full period = backtest of the current system, live since 2026-10-11</div>
       </div>
     </div>
     <div id="hist"></div>
@@ -247,7 +249,7 @@ function renderCmp(){
   if(!D){$("cmp").innerHTML='<div class="sub2" style="padding:10px 0 4px">Appears once the first delivery day has settled.</div>';
     $("dlabel").textContent="–";$("dprev").disabled=$("dnext").disabled=true;return;}
   const r=D[di];
-  $("dlabel").textContent=r.date;
+  $("dlabel").innerHTML=r.date+' <span class="srcbadge">'+(r.src==="live"?"live":"backtest")+"</span>";
   $("dprev").disabled=di<=0; $("dnext").disabled=di>=D.length-1;
   const W=990,Hh=330,m={l:46,r:14,t:14,b:30};
   const ys=[...r.actual,...r.forecast,...(r.q05||[]),...(r.q95||[])];
@@ -264,6 +266,7 @@ function renderCmp(){
     bandp=`<path d="${path(r.q95)+r.q05.map((v,i)=>`L${X(23-i).toFixed(1)},${Y(r.q05[23-i]).toFixed(1)}`).join("")}Z" fill="var(--band1)"/>`;
   $("cmp").innerHTML=`<svg class="chart" id="cmpsvg" viewBox="0 0 ${W} ${Hh}">
     ${g}${bandp}
+    ${r.q50?`<path d="${path(r.q50)}" fill="none" stroke="var(--acc2)" stroke-width="1.4" stroke-dasharray="2 3"/>`:""}
     <path d="${path(r.forecast)}" fill="none" stroke="var(--mline)" stroke-width="1.8" stroke-dasharray="5 4"/>
     <path d="${path(r.actual)}" fill="none" stroke="var(--fline)" stroke-width="2.4" stroke-linejoin="round"/>
     <rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${Hh-m.t-m.b}" fill="transparent" id="chit"/>
@@ -344,17 +347,25 @@ document.getElementById("viewtabs").addEventListener("click",e=>{
 /* ---------- accuracy ---------- */
 function renderHist(){
   if(!H.length){$("hist").innerHTML='<div class="sub2" style="padding:10px 0 4px">No evaluated days yet — accuracy appears once delivery days have passed.</div>';$("chips").innerHTML="";return;}
-  const n=H.length,W=990,Hh=230,m={l:40,r:12,t:12,b:40};
-  const vmax=Math.ceil(Math.max(...H.map(d=>Math.max(d.mae||0,d.mae_naive||0)))/10)*10||10;
+  let HD=H;
+  if(H.length>40){
+    const grp={};
+    for(const d of H){const k=d.date.slice(0,7);(grp[k]=grp[k]||[]).push(d);}
+    HD=Object.keys(grp).sort().map(k=>({date:k,n:grp[k].length,
+      mae:grp[k].reduce((a,x)=>a+x.mae,0)/grp[k].length,
+      mae_naive:grp[k].some(x=>x.mae_naive==null)?null:grp[k].reduce((a,x)=>a+x.mae_naive,0)/grp[k].length}));
+  }
+  const n=HD.length,W=990,Hh=230,m={l:40,r:12,t:12,b:40};
+  const vmax=Math.ceil(Math.max(...HD.map(d=>Math.max(d.mae||0,d.mae_naive||0)))/10)*10||10;
   const X=i=>m.l+(W-m.l-m.r)*(i+.5)/n, Y=v=>m.t+(Hh-m.t-m.b)*(1-v/vmax), bw=Math.min(20,(W-m.l-m.r)/n*.36);
   let g="";
   for(let v=0;v<=vmax;v+=vmax>40?20:10)
     g+=`<line class="axis" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="axt" x="${m.l-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
   let bars="";
-  H.forEach((d,i)=>{
+  HD.forEach((d,i)=>{
     if(d.mae_naive!=null)bars+=`<rect x="${X(i)+1.5}" y="${Y(d.mae_naive)}" width="${bw}" height="${Math.max(0,Y(0)-Y(d.mae_naive))}" fill="var(--naive)" rx="2.5"/>`;
     bars+=`<rect x="${X(i)-bw-1.5}" y="${Y(d.mae)}" width="${bw}" height="${Math.max(0,Y(0)-Y(d.mae))}" fill="var(--bar)" rx="2.5"/>`;
-    if(n<=21||i%Math.ceil(n/14)===0)g+=`<text class="axt" x="${X(i)}" y="${Hh-8}" text-anchor="middle">${d.date.slice(5)}</text>`;
+    if(n<=21||i%Math.ceil(n/14)===0)g+=`<text class="axt" x="${X(i)}" y="${Hh-8}" text-anchor="middle">${d.date.length===7?d.date:d.date.slice(5)}</text>`;
   });
   $("hist").innerHTML=`<svg class="chart" id="histsvg" viewBox="0 0 ${W} ${Hh}">${g}${bars}
     <rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${Hh-m.t-m.b}" fill="transparent" id="hhit"/></svg>`;
@@ -363,14 +374,14 @@ function renderHist(){
     const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
     const u=p.matrixTransform(svg.getScreenCTM().inverse());
     const i=Math.max(0,Math.min(n-1,Math.floor((u.x-m.l)/(W-m.l-m.r)*n)));
-    const d=H[i];
-    showTip(`<b>${d.date}</b><br>model MAE <b>${fmt(d.mae)}</b> · naive ${fmt(d.mae_naive)}<br>`+
+    const d=HD[i];
+    showTip(`<b>${d.date}</b>${d.n?` (${d.n} days)`:""}<br>model MAE <b>${fmt(d.mae)}</b> · naive ${fmt(d.mae_naive)}<br>`+
       (d.cov90!=null?`90 % band hit ${(d.cov90*100).toFixed(0)} % of hours`:""),e.clientX,e.clientY);
   });
   $("hhit").addEventListener("pointerleave",hideTip);
-  const mm=H.reduce((a,d)=>a+d.mae,0)/n, mn=H.filter(d=>d.mae_naive!=null);
+  const mm=H.reduce((a,d)=>a+d.mae,0)/H.length, mn=H.filter(d=>d.mae_naive!=null);
   const nn=mn.reduce((a,d)=>a+d.mae_naive,0)/(mn.length||1);
-  $("chips").innerHTML=`<span class="chip"><b>${n}</b>evaluated day(s)</span>
+  $("chips").innerHTML=`<span class="chip"><b>${H.length}</b>evaluated day(s)</span>
     <span class="chip"><b>${mm.toFixed(1)}</b>model Ø €/MWh</span>
     <span class="chip"><b>${nn.toFixed(1)}</b>naive Ø €/MWh</span>
     <span class="chip"><b>${nn>0?Math.round((1-mm/nn)*100)+" %":"–"}</b>improvement vs naive</span>`;
