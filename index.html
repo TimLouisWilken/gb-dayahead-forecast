@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GB Day-Ahead Forecast</title>
+<meta name="description" content="Daily GB day-ahead electricity price forecast from an online hybrid ensemble with QRA quantiles. Research project, updated every morning before gate closure.">
+<style>
+:root{
+  --bg:#f7f8fa; --surface:#ffffff; --ink:#1a2130; --ink2:#5b6474; --ink3:#8a93a4;
+  --line:#e3e7ee; --accent:#1452cc; --accent-soft:#dbe6fb; --band1:rgba(20,82,204,.14);
+  --band2:rgba(20,82,204,.30); --med:#7a95d0; --good:#176d3f; --warn:#9a6700;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1319; --surface:#171c25; --ink:#e8ecf3; --ink2:#a6afc0; --ink3:#78819280;
+  --line:#2a3240; --accent:#6ea0ff; --accent-soft:#1d2d4d; --band1:rgba(110,160,255,.16);
+  --band2:rgba(110,160,255,.34); --med:#5d77ad; --good:#4fc07f; --warn:#e3b341;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1319; --surface:#171c25; --ink:#e8ecf3; --ink2:#a6afc0; --ink3:#78819280;
+  --line:#2a3240; --accent:#6ea0ff; --accent-soft:#1d2d4d; --band1:rgba(110,160,255,.16);
+  --band2:rgba(110,160,255,.34); --med:#5d77ad; --good:#4fc07f; --warn:#e3b341;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:28px 16px 48px}
+header h1{font-size:22px;margin:0 0 2px;font-weight:650}
+header .sub{color:var(--ink2);font-size:13.5px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:18px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:18px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tile .k{font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
+.tile .v{font-size:22px;font-weight:650;margin-top:2px}
+.tile .d{font-size:12px;color:var(--ink3)}
+h2{font-size:15px;margin:0 0 10px;font-weight:650}
+svg{display:block;width:100%;height:auto}
+.axis{stroke:var(--line)} .axt{fill:var(--ink3);font-size:11px}
+.leg{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:8px}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:10px;border-radius:2px;display:inline-block}
+.tip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.12);
+  display:none;z-index:9;color:var(--ink)}
+.tip b{font-weight:650}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+th,td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--ink2);font-weight:600;font-size:12px}
+.toggle{background:none;border:1px solid var(--line);color:var(--ink2);border-radius:8px;
+  padding:4px 10px;font-size:12.5px;cursor:pointer;float:right}
+.toggle:hover{color:var(--ink)}
+footer{color:var(--ink3);font-size:12.5px;margin-top:26px}
+footer a{color:var(--accent)}
+.err{color:var(--warn)}
+@media(max-width:560px){.tile .v{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>GB day-ahead power price forecast</h1>
+    <div class="sub" id="sub">loading …</div>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <button class="toggle" id="tgl">table</button>
+    <h2 id="charttitle">Hourly forecast (EUR/MWh)</h2>
+    <div id="fan"></div>
+    <div class="leg">
+      <span><span class="sw" style="background:var(--band1)"></span>90 % interval (q05–q95)</span>
+      <span><span class="sw" style="background:var(--band2)"></span>50 % interval (q25–q75)</span>
+      <span><span class="sw" style="background:var(--accent);height:3px"></span>point forecast</span>
+      <span><span class="sw" style="background:var(--med);height:2px"></span>median (q50)</span>
+    </div>
+    <div id="tbl" style="display:none;overflow-x:auto"></div>
+  </div>
+
+  <div class="card">
+    <h2>Realised accuracy — daily MAE of published forecasts (EUR/MWh)</h2>
+    <div id="hist"></div>
+    <div class="leg">
+      <span><span class="sw" style="background:var(--accent)"></span>this model</span>
+      <span><span class="sw" style="background:var(--ink3)"></span>naive benchmark (d−1 / d−7)</span>
+      <span id="histsum"></span>
+    </div>
+  </div>
+
+  <footer>
+    Research project — an online-learning hybrid ensemble (RF, GBM, LSTM, Transformer, LEAR, merit-order,
+    Chronos members; Bernstein online aggregation; QRA + adaptive conformal quantiles), retrained daily on a
+    strict 07:30&nbsp;UTC D−1 information set and published before gate closure.
+    Hours are UK local time for the delivery day. Forecast errors are published, raw exchange prices are not
+    redistributed. No trading advice; no warranty.
+    <a href="https://github.com/TimLouisWilken/gb-dayahead-forecast">About / code</a>
+  </footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const $=id=>document.getElementById(id), fmt=v=>v==null?"–":(+v).toFixed(v>=100?0:1);
+const tip=$("tip");
+function showTip(html,x,y){tip.innerHTML=html;tip.style.display="block";
+  const r=tip.getBoundingClientRect();
+  tip.style.left=Math.min(x+14,innerWidth-r.width-8)+"px";
+  tip.style.top=Math.max(8,y-r.height-12)+"px";}
+function hideTip(){tip.style.display="none";}
+
+fetch("data/latest.json").then(r=>r.json()).then(L=>{
+  const f=L.forecast, q=L.quantiles;
+  $("sub").textContent=`Delivery day ${L.target_date} · published ${L.generated_utc.replace("T"," ").replace("Z"," UTC")} · ${L.model}`;
+  $("charttitle").textContent=`Hourly forecast for ${L.target_date} (EUR/MWh)`;
+  const mean=f.reduce((a,b)=>a+b,0)/24, hi=Math.max(...f), lo=Math.min(...f);
+  $("tiles").innerHTML=[
+    ["day average",fmt(mean),"EUR/MWh"],
+    ["peak",fmt(hi),"at "+f.indexOf(hi)+":00"],
+    ["low",fmt(lo),"at "+f.indexOf(lo)+":00"],
+    ["evening 17–20h",fmt((f[17]+f[18]+f[19]+f[20])/4),"EUR/MWh"],
+  ].map(([k,v,d])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+
+  // fan chart
+  const W=960,H=380,m={l:46,r:14,t:12,b:26};
+  const ys=[...q.q05,...q.q95,...f], y0=Math.floor(Math.min(...ys)/20)*20, y1=Math.ceil(Math.max(...ys)/20)*20;
+  const X=h=>m.l+(W-m.l-m.r)*h/23, Y=v=>m.t+(H-m.t-m.b)*(1-(v-y0)/(y1-y0));
+  const path=a=>a.map((v,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+  const band=(lo,hi)=>path(hi)+a2(lo);
+  const a2=a=>a.map((v,i)=>`L${X(23-i).toFixed(1)},${Y(a[23-i]).toFixed(1)}`).join("")+"Z";
+  let grid="";
+  for(let v=y0;v<=y1;v+=(y1-y0)>160?40:20)
+    grid+=`<line class="axis" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="axt" x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  for(let h=0;h<=23;h+=3)
+    grid+=`<text class="axt" x="${X(h)}" y="${H-8}" text-anchor="middle">${h}:00</text>`;
+  $("fan").innerHTML=`<svg id="fansvg" viewBox="0 0 ${W} ${H}">
+    ${grid}
+    <path d="${band(q.q05,q.q95)}" fill="var(--band1)"/>
+    <path d="${band(q.q25,q.q75)}" fill="var(--band2)"/>
+    <path d="${path(q.q50)}" fill="none" stroke="var(--med)" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <path d="${path(f)}" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round"/>
+    <line id="cross" y1="${m.t}" y2="${H-m.b}" stroke="var(--ink3)" stroke-width="1" style="display:none"/>
+    <circle id="dot" r="4" fill="var(--accent)" style="display:none"/>
+    <rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${H-m.t-m.b}" fill="transparent" id="hit"/>
+  </svg>`;
+  const svg=$("fansvg"),cr=$("cross"),dot=$("dot");
+  $("hit").addEventListener("pointermove",e=>{
+    const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+    const u=p.matrixTransform(svg.getScreenCTM().inverse());
+    const h=Math.max(0,Math.min(23,Math.round((u.x-m.l)/(W-m.l-m.r)*23)));
+    cr.setAttribute("x1",X(h));cr.setAttribute("x2",X(h));cr.style.display="block";
+    dot.setAttribute("cx",X(h));dot.setAttribute("cy",Y(f[h]));dot.style.display="block";
+    showTip(`<b>${h}:00</b> UK local<br>forecast <b>${fmt(f[h])}</b> EUR/MWh<br>`+
+      `median ${fmt(q.q50[h])} · 50 % ${fmt(q.q25[h])}–${fmt(q.q75[h])}<br>90 % ${fmt(q.q05[h])}–${fmt(q.q95[h])}`,
+      e.clientX,e.clientY);
+  });
+  $("hit").addEventListener("pointerleave",()=>{cr.style.display="none";dot.style.display="none";hideTip();});
+
+  // table view
+  $("tbl").innerHTML="<table><tr><th>hour</th><th>forecast</th><th>q05</th><th>q25</th><th>q50</th><th>q75</th><th>q95</th></tr>"+
+    f.map((v,h)=>`<tr><td>${h}:00</td><td>${fmt(v)}</td><td>${fmt(q.q05[h])}</td><td>${fmt(q.q25[h])}</td><td>${fmt(q.q50[h])}</td><td>${fmt(q.q75[h])}</td><td>${fmt(q.q95[h])}</td></tr>`).join("")+"</table>";
+  $("tgl").onclick=()=>{const t=$("tbl"),c=$("fan");
+    const show=t.style.display==="none";t.style.display=show?"block":"none";
+    c.style.display=show?"none":"block";$("tgl").textContent=show?"chart":"table";};
+}).catch(e=>{$("sub").innerHTML=`<span class="err">could not load forecast data (${e})</span>`;});
+
+fetch("data/history.json").then(r=>r.json()).then(Hh=>{
+  if(!Hh.length){$("hist").innerHTML='<div class="sub">no evaluated days yet — accuracy appears once delivery days have passed.</div>';return;}
+  const n=Hh.length,W=960,H=220,m={l:40,r:10,t:10,b:38};
+  const vmax=Math.ceil(Math.max(...Hh.map(d=>Math.max(d.mae||0,d.mae_naive||0)))/10)*10||10;
+  const X=i=>m.l+(W-m.l-m.r)*(i+.5)/n, Y=v=>m.t+(H-m.t-m.b)*(1-v/vmax), bw=Math.min(18,(W-m.l-m.r)/n*.38);
+  let g="";
+  for(let v=0;v<=vmax;v+=vmax>40?20:10)
+    g+=`<line class="axis" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="axt" x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  let bars="";
+  Hh.forEach((d,i)=>{
+    if(d.mae_naive!=null)bars+=`<rect x="${X(i)+1}" y="${Y(d.mae_naive)}" width="${bw}" height="${Y(0)-Y(d.mae_naive)}" fill="var(--ink3)" rx="2"/>`;
+    bars+=`<rect x="${X(i)-bw-1}" y="${Y(d.mae)}" width="${bw}" height="${Y(0)-Y(d.mae)}" fill="var(--accent)" rx="2" data-i="${i}"/>`;
+    if(n<=21||i%Math.ceil(n/14)===0)g+=`<text class="axt" x="${X(i)}" y="${H-6}" text-anchor="middle">${d.date.slice(5)}</text>`;
+  });
+  $("hist").innerHTML=`<svg id="histsvg" viewBox="0 0 ${W} ${H}">${g}${bars}
+    <rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${H-m.t-m.b}" fill="transparent" id="hhit"/></svg>`;
+  const svg=$("histsvg");
+  $("hhit").addEventListener("pointermove",e=>{
+    const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+    const u=p.matrixTransform(svg.getScreenCTM().inverse());
+    const i=Math.max(0,Math.min(n-1,Math.floor((u.x-m.l)/(W-m.l-m.r)*n)));
+    const d=Hh[i];
+    showTip(`<b>${d.date}</b><br>model MAE <b>${fmt(d.mae)}</b> · naive ${fmt(d.mae_naive)}<br>`+
+      (d.cov90!=null?`90 % band hit ${(d.cov90*100).toFixed(0)} % of hours`:""),e.clientX,e.clientY);
+  });
+  $("hhit").addEventListener("pointerleave",hideTip);
+  const mm=Hh.reduce((a,d)=>a+d.mae,0)/n, mn=Hh.filter(d=>d.mae_naive!=null);
+  const nn=mn.reduce((a,d)=>a+d.mae_naive,0)/(mn.length||1);
+  $("histsum").textContent=`last ${n} day(s): Ø ${mm.toFixed(1)} vs naive ${nn.toFixed(1)} EUR/MWh`;
+}).catch(()=>{$("hist").innerHTML='<div class="sub err">history unavailable</div>';});
+</script>
+</body>
+</html>
