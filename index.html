@@ -71,8 +71,8 @@ footer a{color:var(--accent)}
     <div class="leg">
       <span><span class="sw" style="background:var(--band1)"></span>90 % interval (q05–q95)</span>
       <span><span class="sw" style="background:var(--band2)"></span>50 % interval (q25–q75)</span>
-      <span><span class="sw" style="background:var(--accent);height:3px"></span>point forecast</span>
-      <span><span class="sw" style="background:var(--med);height:2px"></span>median (q50)</span>
+      <span><svg width="22" height="10"><line x1="1" y1="5" x2="21" y2="5" stroke="var(--accent)" stroke-width="2.6"/></svg>point forecast (ensemble)</span>
+      <span><svg width="22" height="10"><line x1="1" y1="5" x2="21" y2="5" stroke="var(--med)" stroke-width="1.8" stroke-dasharray="4 3"/></svg>median of the distribution (q50, dashed)</span>
     </div>
     <div id="tbl" style="display:none;overflow-x:auto"></div>
   </div>
