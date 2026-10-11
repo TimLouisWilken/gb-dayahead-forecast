@@ -105,7 +105,9 @@ td:nth-child(2){font-weight:600}
 .daynav button:hover:not(:disabled){color:var(--ink);border-color:var(--ink3)}
 .daynav button:disabled{opacity:.35;cursor:default}
 .srcbadge{font:600 9.5px "Helvetica Neue";letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;margin-left:6px}
-.daynav span{font:600 13.5px "Helvetica Neue";min-width:92px;text-align:center;font-variant-numeric:tabular-nums}
+.daynav input[type=date]{background:none;border:1px solid var(--line2);color:var(--ink);border-radius:7px;
+  padding:4px 7px;font:600 13px "Helvetica Neue";color-scheme:light dark}
+#dlast{width:auto;padding:0 10px;font:600 11px "Helvetica Neue";letter-spacing:.05em;text-transform:uppercase}
 .chips{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .chip{font-size:12.5px;color:var(--ink3)}
 .chip b{display:block;font:600 19px "Helvetica Neue";color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
@@ -163,12 +165,16 @@ footer a:hover{text-decoration-color:var(--ink)}
     <div class="cardhead">
       <div>
         <h2>Forecast vs. actual</h2>
-        <div class="sub2">published forecast against the realised auction price · days before the live start are a backtest of the current system · actual prices: Nord Pool N2EX, last 60 days only</div>
+        <div class="sub2">published forecast against the realised auction price · days before the live start are a backtest of the current system · actual prices: Ember (CC-BY-4.0), recent days Nord Pool N2EX</div>
       </div>
       <div class="daynav">
-        <button id="dprev" aria-label="previous day">‹</button>
-        <span id="dlabel">–</span>
-        <button id="dnext" aria-label="next day">›</button>
+        <button id="dmprev" title="-1 month">«</button>
+        <button id="dprev" title="-1 day">‹</button>
+        <input type="date" id="dpick">
+        <span class="srcbadge" id="dsrc"></span>
+        <button id="dnext" title="+1 day">›</button>
+        <button id="dmnext" title="+1 month">»</button>
+        <button id="dlast" title="newest day">Latest</button>
       </div>
     </div>
     <div id="cmp"></div>
@@ -200,8 +206,8 @@ footer a:hover{text-decoration-color:var(--ink)}
     A research project: an online-learning hybrid ensemble — random forests, gradient boosting, LSTM,
     Transformer, LEAR, merit-order and Chronos members, combined per hour by Bernstein online aggregation,
     with QRA + adaptive-conformal quantiles — retrained every day on a strict 07:30&nbsp;UTC D−1 information
-    set and published before gate closure. Forecast errors are published; realised auction prices (source: Nord Pool N2EX) are shown for the
-    last 14 days only, the full price history is not redistributed. No trading advice, no warranty.
+    set and published before gate closure. Forecast errors are published; realised auction prices are shown under their source licences — historical days from the
+    Ember European wholesale price dataset (CC-BY-4.0), the newest days from Nord Pool N2EX (rolling 60-day window). No trading advice, no warranty.
     <br><a class="arrow" href="https://github.com/TimLouisWilken/gb-dayahead-research">Methodology &amp; code <span>→</span></a>
   </footer>
 </div>
@@ -249,8 +255,10 @@ function renderCmp(){
   if(!D){$("cmp").innerHTML='<div class="sub2" style="padding:10px 0 4px">Appears once the first delivery day has settled.</div>';
     $("dlabel").textContent="–";$("dprev").disabled=$("dnext").disabled=true;return;}
   const r=D[di];
-  $("dlabel").innerHTML=r.date+' <span class="srcbadge">'+(r.src==="live"?"live":"backtest")+"</span>";
+  $("dpick").value=r.date; $("dpick").min=D[0].date; $("dpick").max=D[D.length-1].date;
+  $("dsrc").textContent=r.src==="live"?"live":"backtest";
   $("dprev").disabled=di<=0; $("dnext").disabled=di>=D.length-1;
+  $("dmprev").disabled=di<=0; $("dmnext").disabled=di>=D.length-1;
   const W=990,Hh=330,m={l:46,r:14,t:14,b:30};
   const ys=[...r.actual,...r.forecast,...(r.q05||[]),...(r.q95||[])];
   const y0=Math.floor(Math.min(...ys)/20)*20, y1=Math.ceil(Math.max(...ys)/20)*20;
@@ -285,6 +293,15 @@ function renderCmp(){
 }
 $("dprev").onclick=()=>{if(di>0){di--;renderCmp();}};
 $("dnext").onclick=()=>{if(di<D.length-1){di++;renderCmp();}};
+$("dmprev").onclick=()=>{di=Math.max(0,di-30);renderCmp();};
+$("dmnext").onclick=()=>{di=Math.min(D.length-1,di+30);renderCmp();};
+$("dlast").onclick=()=>{di=D.length-1;renderCmp();};
+$("dpick").addEventListener("change",e=>{
+  if(!D)return; const v=e.target.value;
+  let best=0,bd=1e15;
+  for(let i=0;i<D.length;i++){const diff=Math.abs(new Date(D[i].date)-new Date(v));if(diff<bd){bd=diff;best=i;}}
+  di=best;renderCmp();
+});
 
 /* ---------- hero + tiles + fan ---------- */
 function renderMain(){
