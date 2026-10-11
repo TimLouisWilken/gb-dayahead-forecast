@@ -14,3 +14,4 @@ Data shown are the model's own forecasts and derived error statistics.
 Raw exchange prices are not redistributed. Research project - no trading advice, no warranty.
 
 Site: https://timlouiswilken.github.io/gb-dayahead-forecast/
+Research repo (code, methodology, results): https://github.com/TimLouisWilken/gb-dayahead-research
