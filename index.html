@@ -7,115 +7,128 @@
 <meta name="description" content="Daily GB day-ahead electricity price forecast from an online hybrid ensemble with QRA quantiles. Research project, updated every morning before gate closure.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f6f2; --card:#ffffff; --ink:#0c0c0d; --ink2:#52535a; --ink3:#9a9ba1;
-  --line:#e5e5df; --line2:#d8d8d0;
-  --accent:#ffd51e; --accent-ink:#0c0c0d;
-  --band1:rgba(246,194,0,.16); --band2:rgba(246,194,0,.38);
-  --fline:#0c0c0d; --mline:#86878d; --naive:#c9c9c2;
-  --shadow:0 1px 2px rgba(10,10,10,.04), 0 8px 24px rgba(10,10,10,.05);
+  --bg:#efefec; --card:#ffffff; --panel:#e6e6e2;
+  --ink:#131314; --ink2:#55555a; --ink3:#97979c;
+  --line:#e2e2dd; --line2:#cfcfc9;
+  --acc:#28285a; --acc2:#3d3d8f;
+  --band1:rgba(40,40,90,.08); --band2:rgba(40,40,90,.20);
+  --fline:#131314; --mline:#8f8f94; --naive:#cdcdc7; --bar:#28285a;
+  --shadow:0 1px 2px rgba(15,15,20,.03), 0 10px 30px rgba(15,15,20,.05);
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0b0c0d; --card:#141518; --ink:#f2f2ef; --ink2:#a7a8ad; --ink3:#66676d;
-  --line:#242529; --line2:#303136;
-  --accent:#ffd51e; --accent-ink:#0c0c0d;
-  --band1:rgba(255,213,30,.10); --band2:rgba(255,213,30,.26);
-  --fline:#ffd51e; --mline:#8e8f95; --naive:#3c3d42;
+  --bg:#0d0d0e; --card:#161617; --panel:#1d1d1f;
+  --ink:#f1f1ee; --ink2:#a4a4a9; --ink3:#636368;
+  --line:#242426; --line2:#333336;
+  --acc:#a9a9e8; --acc2:#8b8bd6;
+  --band1:rgba(150,150,230,.09); --band2:rgba(150,150,230,.22);
+  --fline:#f1f1ee; --mline:#808085; --naive:#323234; --bar:#a9a9e8;
   --shadow:none;
 }}
 :root[data-theme="dark"]{
-  --bg:#0b0c0d; --card:#141518; --ink:#f2f2ef; --ink2:#a7a8ad; --ink3:#66676d;
-  --line:#242529; --line2:#303136;
-  --accent:#ffd51e; --accent-ink:#0c0c0d;
-  --band1:rgba(255,213,30,.10); --band2:rgba(255,213,30,.26);
-  --fline:#ffd51e; --mline:#8e8f95; --naive:#3c3d42;
+  --bg:#0d0d0e; --card:#161617; --panel:#1d1d1f;
+  --ink:#f1f1ee; --ink2:#a4a4a9; --ink3:#636368;
+  --line:#242426; --line2:#333336;
+  --acc:#a9a9e8; --acc2:#8b8bd6;
+  --band1:rgba(150,150,230,.09); --band2:rgba(150,150,230,.22);
+  --fline:#f1f1ee; --mline:#808085; --naive:#323234; --bar:#a9a9e8;
   --shadow:none;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
-  font:15px/1.6 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font:15px/1.6 "Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   -webkit-font-smoothing:antialiased}
-.wrap{max-width:1060px;margin:0 auto;padding:0 20px 64px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 72px}
 
 /* top bar */
-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0 0}
-.brand{display:flex;align-items:center;gap:10px;font-family:"Space Grotesk";font-weight:700;font-size:17px;letter-spacing:-.01em}
-.brand .dot{width:22px;height:22px;border-radius:6px;background:var(--accent);display:grid;place-items:center;
-  color:var(--accent-ink);font-size:12px;font-weight:700}
-.badge{font:600 10.5px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2);
-  border:1px solid var(--line2);border-radius:999px;padding:3px 10px;margin-left:4px}
-.mode{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
-.mode button{background:none;border:0;color:var(--ink3);font:600 11px Inter;letter-spacing:.06em;
-  padding:6px 12px;cursor:pointer;text-transform:uppercase}
-.mode button.on{background:var(--ink);color:var(--bg)}
+nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0 0}
+.brand{font:600 14px "Instrument Sans";letter-spacing:.32em;text-transform:uppercase}
+.brand i{font-style:normal;color:var(--ink3)}
+.navr{display:flex;align-items:center;gap:14px}
+.badge{font:500 11px "Instrument Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.mode{display:flex;gap:2px;background:var(--panel);border-radius:7px;padding:2px}
+.mode button{background:none;border:0;color:var(--ink3);font:600 11px "Instrument Sans";
+  letter-spacing:.08em;padding:5px 11px;cursor:pointer;text-transform:uppercase;border-radius:5px}
+.mode button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 
 /* hero */
-.hero{padding:44px 0 10px}
-.eyebrow{font:600 11px Inter;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);display:flex;align-items:center;gap:8px}
-.eyebrow::before{content:"";width:22px;height:3px;background:var(--accent);border-radius:2px}
-h1{font-family:"Space Grotesk";font-weight:700;font-size:clamp(28px,4.4vw,44px);line-height:1.08;
-  letter-spacing:-.02em;margin:10px 0 6px}
-h1 .hl{background:linear-gradient(transparent 62%, var(--accent) 62%, var(--accent) 94%, transparent 94%)}
-.meta{color:var(--ink3);font-size:13px}
+.hero{padding:64px 0 14px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.eyebrow{font:500 12px "Instrument Sans";letter-spacing:.18em;text-transform:uppercase;color:var(--ink2)}
+h1{font-family:"Newsreader";font-optical-sizing:auto;font-weight:500;
+  font-size:clamp(38px,6vw,64px);line-height:1.04;letter-spacing:-.015em;margin:14px 0 10px}
+h1 .dim{color:var(--ink3)}
+.meta{color:var(--ink3);font-size:13px;padding-bottom:22px}
+.meta b{color:var(--ink2);font-weight:500}
 
-/* stat tiles */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:26px 0 0}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px 14px;box-shadow:var(--shadow)}
-.tile .k{font:600 10.5px Inter;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
-.tile .v{font-family:"Space Grotesk";font-weight:700;font-size:30px;letter-spacing:-.02em;margin-top:6px}
-.tile .v small{font:500 12px Inter;color:var(--ink3);letter-spacing:0;margin-left:3px}
-.tile .d{font-size:12px;color:var(--ink2);margin-top:2px}
+/* stat band */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0 0 26px}
+.tile{background:var(--card);padding:18px 20px 16px}
+.tile .k{font:500 11px "Instrument Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.tile .v{font:600 30px/1.15 "Instrument Sans";letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
+.tile .v small{font:400 12px "Instrument Sans";color:var(--ink3);margin-left:4px;letter-spacing:0}
+.tile .d{font-size:12.5px;color:var(--ink2);margin-top:3px}
 
 /* cards */
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 18px;margin-top:22px;box-shadow:var(--shadow)}
-.cardhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-h2{font-family:"Space Grotesk";font-weight:700;font-size:18px;letter-spacing:-.01em;margin:0}
-.sub2{color:var(--ink3);font-size:12.5px;margin-top:2px}
-.pill{background:none;border:1px solid var(--line2);color:var(--ink2);border-radius:999px;
-  padding:5px 14px;font:600 12px Inter;cursor:pointer}
-.pill:hover{color:var(--ink);border-color:var(--ink3)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:24px 24px 20px;margin-top:26px;box-shadow:var(--shadow)}
+.cardhead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+h2{font-family:"Newsreader";font-weight:500;font-size:26px;letter-spacing:-.01em;margin:0;line-height:1.15}
+.sub2{color:var(--ink3);font-size:12.5px;margin-top:4px}
+
+/* modo-style underline tabs */
+.tabs{display:flex;gap:22px}
+.tabs button{background:none;border:0;padding:4px 0 7px;cursor:pointer;
+  font:500 13.5px "Instrument Sans";color:var(--ink3);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
 
 svg.chart{display:block;width:100%;height:auto}
-.axis{stroke:var(--line)} .axt{fill:var(--ink3);font:500 10.5px Inter;letter-spacing:.04em}
-.leg{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:12px}
-.leg span{display:inline-flex;align-items:center;gap:7px;flex:none;white-space:nowrap}
+.axis{stroke:var(--line)} .axt{fill:var(--ink3);font:500 10.5px "Instrument Sans";letter-spacing:.05em}
+.leg{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:14px}
+.leg span{display:inline-flex;align-items:center;gap:8px;flex:none;white-space:nowrap}
 .leg svg{flex:none;width:24px;height:10px}
-.leg .bx{width:16px;height:11px;border-radius:3px;flex:none}
+.leg .bx{width:15px;height:11px;border-radius:3px;flex:none}
 
 .tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line2);
-  border-radius:10px;padding:9px 12px;font-size:12.5px;box-shadow:0 6px 22px rgba(0,0,0,.18);
-  display:none;z-index:9;color:var(--ink);line-height:1.5}
-.tip b{font-family:"Space Grotesk";font-weight:700}
+  border-radius:9px;padding:10px 13px;font-size:12.5px;box-shadow:0 8px 26px rgba(0,0,0,.16);
+  display:none;z-index:9;color:var(--ink);line-height:1.55}
+.tip b{font-weight:600}
 
-table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
-th,td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:10px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
-th{color:var(--ink3);font:600 10.5px Inter;letter-spacing:.1em;text-transform:uppercase}
+th{color:var(--ink3);font:500 11px "Instrument Sans";letter-spacing:.12em;text-transform:uppercase}
 td:nth-child(2){font-weight:600}
 
-.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.chip{border:1px solid var(--line2);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--ink2)}
-.chip b{color:var(--ink);font-weight:600}
+.chips{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.chip{font-size:12.5px;color:var(--ink3)}
+.chip b{display:block;font:600 19px "Instrument Sans";color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 
-footer{color:var(--ink3);font-size:12.5px;margin-top:30px;line-height:1.7}
-footer a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:2px}
-.err{color:#b45309}
-@media(max-width:560px){ .tile .v{font-size:24px} .card{padding:16px 14px 14px} }
+footer{color:var(--ink3);font-size:12.5px;margin-top:34px;line-height:1.75;max-width:760px}
+footer a{color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line2)}
+footer a:hover{text-decoration-color:var(--ink)}
+.arrow{font:500 13px "Instrument Sans";color:var(--ink);text-decoration:none;display:inline-flex;gap:6px;align-items:center;margin-top:8px}
+.arrow:hover{color:var(--acc2)}
+.err{color:#a3512b}
+@media(max-width:560px){ .tile .v{font-size:24px} .card{padding:16px 14px 14px} h2{font-size:22px} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <nav>
-    <div class="brand"><span class="dot"><svg width="12" height="14" viewBox="0 0 12 14"><path d="M7.2 0 1 8h3.4L4.8 14 11 6H7.6L7.2 0z" fill="currentColor"/></svg></span>GB Day-Ahead<span class="badge">research</span></div>
-    <div class="mode" id="mode">
-      <button data-m="auto">Auto</button><button data-m="light">Light</button><button data-m="dark">Dark</button>
+    <div class="brand">GB&nbsp;Day-Ahead<i>&nbsp;·&nbsp;Forecast</i></div>
+    <div class="navr">
+      <span class="badge">Research</span>
+      <div class="mode" id="mode">
+        <button data-m="auto">Auto</button><button data-m="light">Light</button><button data-m="dark">Dark</button>
+      </div>
     </div>
   </nav>
 
   <header class="hero">
-    <div class="eyebrow" id="eyebrow">Day-ahead power price forecast</div>
+    <div class="eyebrow">Day-ahead power price forecast — Great Britain</div>
     <h1 id="h1">Loading forecast …</h1>
     <div class="meta" id="meta"></div>
   </header>
@@ -128,14 +141,16 @@ footer a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-th
         <h2 id="charttitle">Hourly forecast</h2>
         <div class="sub2">EUR/MWh · hours in UK local time · band = QRA-15 quantiles, conformally calibrated</div>
       </div>
-      <button class="pill" id="tgl">Table view</button>
+      <div class="tabs" id="viewtabs">
+        <button class="on" data-v="chart">Chart</button><button data-v="table">Table</button>
+      </div>
     </div>
     <div id="fan"></div>
     <div class="leg">
       <span><span class="bx" style="background:var(--band1)"></span>90 % interval (q05–q95)</span>
       <span><span class="bx" style="background:var(--band2)"></span>50 % interval (q25–q75)</span>
-      <span><svg><line x1="1" y1="5" x2="23" y2="5" stroke="var(--fline)" stroke-width="2.6"/></svg>point forecast</span>
-      <span><svg><line x1="1" y1="5" x2="23" y2="5" stroke="var(--mline)" stroke-width="1.8" stroke-dasharray="4 3"/></svg>median (q50)</span>
+      <span><svg><line x1="1" y1="5" x2="23" y2="5" stroke="var(--fline)" stroke-width="2.4"/></svg>point forecast</span>
+      <span><svg><line x1="1" y1="5" x2="23" y2="5" stroke="var(--mline)" stroke-width="1.7" stroke-dasharray="4 3"/></svg>median (q50)</span>
     </div>
     <div id="tbl" style="display:none;overflow-x:auto"></div>
   </div>
@@ -149,18 +164,19 @@ footer a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-th
     </div>
     <div id="hist"></div>
     <div class="leg">
-      <span><span class="bx" style="background:var(--accent);border:1px solid var(--fline)"></span>this model</span>
+      <span><span class="bx" style="background:var(--bar)"></span>this model</span>
       <span><span class="bx" style="background:var(--naive)"></span>naive benchmark (d−1 / d−7)</span>
     </div>
     <div class="chips" id="chips"></div>
   </div>
 
   <footer>
-    Research project — an online-learning hybrid ensemble (RF, GBM, LSTM, Transformer, LEAR, merit-order and
-    Chronos members combined by Bernstein online aggregation; QRA + adaptive conformal quantiles), retrained
-    daily on a strict 07:30&nbsp;UTC D−1 information set and published before gate closure. Forecast errors are
-    published; raw exchange prices are not redistributed. No trading advice, no warranty.
-    <a href="https://github.com/TimLouisWilken/gb-dayahead-forecast">Methodology &amp; code</a>
+    A research project: an online-learning hybrid ensemble — random forests, gradient boosting, LSTM,
+    Transformer, LEAR, merit-order and Chronos members, combined per hour by Bernstein online aggregation,
+    with QRA + adaptive-conformal quantiles — retrained every day on a strict 07:30&nbsp;UTC D−1 information
+    set and published before gate closure. Forecast errors are published; raw exchange prices are not
+    redistributed. No trading advice, no warranty.
+    <br><a class="arrow" href="https://github.com/TimLouisWilken/gb-dayahead-forecast">Methodology &amp; code <span>→</span></a>
   </footer>
 </div>
 <div class="tip" id="tip"></div>
@@ -204,10 +220,10 @@ function render(){ if(L)renderMain(); if(H)renderHist(); }
 function renderMain(){
   const f=L.forecast,q=L.quantiles;
   const dt=new Date(L.target_date+"T12:00:00Z");
-  $("h1").innerHTML=`<span class="hl">${DOWS[dt.getUTCDay()]}, ${dt.getUTCDate()} ${MONS[dt.getUTCMonth()]}</span>`;
-  $("meta").textContent=`published ${L.generated_utc.replace("T"," ").replace("Z","")} UTC · ${L.model}`;
-  $("charttitle").textContent=`Hourly forecast for ${L.target_date}`;
   const mean=f.reduce((a,b)=>a+b,0)/24, hi=Math.max(...f), lo=Math.min(...f);
+  $("h1").innerHTML=`${DOWS[dt.getUTCDay()]}, ${dt.getUTCDate()} ${MONS[dt.getUTCMonth()]} <span class="dim">— averaging ${fmt(mean)} €/MWh.</span>`;
+  $("meta").innerHTML=`Published <b>${L.generated_utc.replace("T"," ").replace("Z","")} UTC</b>, before gate closure · ${L.model}`;
+  $("charttitle").textContent=`Hourly forecast for ${L.target_date}`;
   $("tiles").innerHTML=[
     ["Day average",fmt(mean),"€/MWh","baseload reference"],
     ["Peak",fmt(hi),"€/MWh",`at ${f.indexOf(hi)}:00`],
@@ -215,7 +231,7 @@ function renderMain(){
     ["Evening block 17–20",fmt((f[17]+f[18]+f[19]+f[20])/4),"€/MWh","the spike window"],
   ].map(([k,v,u,d])=>`<div class="tile"><div class="k">${k}</div><div class="v">${v}<small>${u}</small></div><div class="d">${d}</div></div>`).join("");
 
-  const W=980,Hh=400,m={l:48,r:16,t:14,b:30};
+  const W=990,Hh=400,m={l:46,r:14,t:14,b:30};
   const ys=[...q.q05,...q.q95,...f],y0=Math.floor(Math.min(...ys)/20)*20,y1=Math.ceil(Math.max(...ys)/20)*20;
   const X=h=>m.l+(W-m.l-m.r)*h/23, Y=v=>m.t+(Hh-m.t-m.b)*(1-(v-y0)/(y1-y0));
   const path=a=>a.map((v,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("");
@@ -229,8 +245,8 @@ function renderMain(){
     ${g}
     <path d="${band(q.q05,q.q95)}" fill="var(--band1)"/>
     <path d="${band(q.q25,q.q75)}" fill="var(--band2)"/>
-    <path d="${path(q.q50)}" fill="none" stroke="var(--mline)" stroke-width="1.7" stroke-dasharray="5 4"/>
-    <path d="${path(f)}" fill="none" stroke="var(--fline)" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="${path(q.q50)}" fill="none" stroke="var(--mline)" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <path d="${path(f)}" fill="none" stroke="var(--fline)" stroke-width="2.4" stroke-linejoin="round"/>
     <line id="cross" y1="${m.t}" y2="${Hh-m.b}" stroke="var(--ink3)" stroke-width="1" style="display:none"/>
     <circle id="dot" r="4.5" fill="var(--fline)" stroke="var(--card)" stroke-width="2" style="display:none"/>
     <rect x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${Hh-m.t-m.b}" fill="transparent" id="hit"/>
@@ -251,14 +267,17 @@ function renderMain(){
   $("tbl").innerHTML="<table><tr><th>Hour</th><th>Forecast</th><th>q05</th><th>q25</th><th>q50</th><th>q75</th><th>q95</th></tr>"+
     f.map((v,h)=>`<tr><td>${h}:00</td><td>${fmt(v)}</td><td>${fmt(q.q05[h])}</td><td>${fmt(q.q25[h])}</td><td>${fmt(q.q50[h])}</td><td>${fmt(q.q75[h])}</td><td>${fmt(q.q95[h])}</td></tr>`).join("")+"</table>";
 }
-$("tgl").onclick=()=>{const t=$("tbl"),c=$("fan"),show=t.style.display==="none";
-  t.style.display=show?"block":"none";c.style.display=show?"none":"block";
-  $("tgl").textContent=show?"Chart view":"Table view";};
+document.getElementById("viewtabs").addEventListener("click",e=>{
+  const v=e.target.dataset.v; if(!v)return;
+  for(const b of document.getElementById("viewtabs").children) b.classList.toggle("on",b.dataset.v===v);
+  $("tbl").style.display=v==="table"?"block":"none";
+  $("fan").style.display=v==="table"?"none":"block";
+});
 
 /* ---------- accuracy ---------- */
 function renderHist(){
-  if(!H.length){$("hist").innerHTML='<div class="sub2" style="padding:8px 0 4px">No evaluated days yet — accuracy appears once delivery days have passed.</div>';$("chips").innerHTML="";return;}
-  const n=H.length,W=980,Hh=230,m={l:42,r:12,t:12,b:40};
+  if(!H.length){$("hist").innerHTML='<div class="sub2" style="padding:10px 0 4px">No evaluated days yet — accuracy appears once delivery days have passed.</div>';$("chips").innerHTML="";return;}
+  const n=H.length,W=990,Hh=230,m={l:40,r:12,t:12,b:40};
   const vmax=Math.ceil(Math.max(...H.map(d=>Math.max(d.mae||0,d.mae_naive||0)))/10)*10||10;
   const X=i=>m.l+(W-m.l-m.r)*(i+.5)/n, Y=v=>m.t+(Hh-m.t-m.b)*(1-v/vmax), bw=Math.min(20,(W-m.l-m.r)/n*.36);
   let g="";
@@ -266,8 +285,8 @@ function renderHist(){
     g+=`<line class="axis" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="axt" x="${m.l-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
   let bars="";
   H.forEach((d,i)=>{
-    if(d.mae_naive!=null)bars+=`<rect x="${X(i)+1.5}" y="${Y(d.mae_naive)}" width="${bw}" height="${Math.max(0,Y(0)-Y(d.mae_naive))}" fill="var(--naive)" rx="3"/>`;
-    bars+=`<rect x="${X(i)-bw-1.5}" y="${Y(d.mae)}" width="${bw}" height="${Math.max(0,Y(0)-Y(d.mae))}" fill="var(--accent)" stroke="var(--fline)" stroke-width="1" rx="3"/>`;
+    if(d.mae_naive!=null)bars+=`<rect x="${X(i)+1.5}" y="${Y(d.mae_naive)}" width="${bw}" height="${Math.max(0,Y(0)-Y(d.mae_naive))}" fill="var(--naive)" rx="2.5"/>`;
+    bars+=`<rect x="${X(i)-bw-1.5}" y="${Y(d.mae)}" width="${bw}" height="${Math.max(0,Y(0)-Y(d.mae))}" fill="var(--bar)" rx="2.5"/>`;
     if(n<=21||i%Math.ceil(n/14)===0)g+=`<text class="axt" x="${X(i)}" y="${Hh-8}" text-anchor="middle">${d.date.slice(5)}</text>`;
   });
   $("hist").innerHTML=`<svg class="chart" id="histsvg" viewBox="0 0 ${W} ${Hh}">${g}${bars}
@@ -284,10 +303,10 @@ function renderHist(){
   $("hhit").addEventListener("pointerleave",hideTip);
   const mm=H.reduce((a,d)=>a+d.mae,0)/n, mn=H.filter(d=>d.mae_naive!=null);
   const nn=mn.reduce((a,d)=>a+d.mae_naive,0)/(mn.length||1);
-  $("chips").innerHTML=`<span class="chip">last <b>${n}</b> day(s)</span>
-    <span class="chip">model Ø <b>${mm.toFixed(1)}</b> €/MWh</span>
-    <span class="chip">naive Ø <b>${nn.toFixed(1)}</b> €/MWh</span>
-    <span class="chip">improvement <b>${nn>0?Math.round((1-mm/nn)*100)+" %":"–"}</b></span>`;
+  $("chips").innerHTML=`<span class="chip"><b>${n}</b>evaluated day(s)</span>
+    <span class="chip"><b>${mm.toFixed(1)}</b>model Ø €/MWh</span>
+    <span class="chip"><b>${nn.toFixed(1)}</b>naive Ø €/MWh</span>
+    <span class="chip"><b>${nn>0?Math.round((1-mm/nn)*100)+" %":"–"}</b>improvement vs naive</span>`;
 }
 </script>
 </body>
