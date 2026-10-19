@@ -1,4 +1,4 @@
-# GB day-ahead power price forecast
+# GB day-ahead power price forecast (live)
 
 Automatically published every morning (~08:50 UK time, before EPEX/N2EX gate closure) by an
 online-learning research pipeline:
