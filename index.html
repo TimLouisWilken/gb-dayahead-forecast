@@ -165,7 +165,7 @@ footer a:hover{text-decoration-color:var(--ink)}
     <div class="cardhead">
       <div>
         <h2>Forecast vs. actual</h2>
-        <div class="sub2">published forecast against the realised auction price · days before the live start are a backtest of the current system · actual prices: Ember (CC-BY-4.0), recent days Nord Pool N2EX</div>
+        <div class="sub2">published forecast against the realised auction price · days before the live start are a backtest of the current system · bands of 11–26 Oct 2026 recomputed with the current quantile method · actual prices: Ember (CC-BY-4.0), recent days Nord Pool N2EX</div>
       </div>
       <div class="daynav">
         <button id="dmprev" title="-1 month">«</button>
@@ -256,7 +256,8 @@ function renderCmp(){
     $("dlabel").textContent="–";$("dprev").disabled=$("dnext").disabled=true;return;}
   const r=D[di];
   $("dpick").value=r.date; $("dpick").min=D[0].date; $("dpick").max=D[D.length-1].date;
-  $("dsrc").textContent=r.src==="live"?"live":"backtest";
+  $("dsrc").textContent=r.src==="live"?(r.band==="recomputed"?"live · band recomputed":"live"):"backtest";
+  $("dsrc").title=r.band==="recomputed"?"Point forecast as published; the band was published with the earlier QRA-15 method and is shown recomputed with the current one (centred QRA-8)":"";
   $("dprev").disabled=di<=0; $("dnext").disabled=di>=D.length-1;
   $("dmprev").disabled=di<=0; $("dmnext").disabled=di>=D.length-1;
   const W=990,Hh=330,m={l:46,r:14,t:14,b:30};
